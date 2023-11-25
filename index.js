@@ -37,7 +37,7 @@ const client = new MongoClient(uri, {
 
   const allMealsCollection = client.db("mealNest").collection("allmeals");
   const userCollection = client.db("mealNest").collection("users");
-
+  const UpcomingMealsCollection = client.db("mealNest").collection("upcomingmeals");
 
 app.get("/", (req, res) => {
     res.send("meal nest server is running");
@@ -99,6 +99,38 @@ app.get('/users', async (req, res) => {
   const result = await userCollection.find().toArray();
   res.send(result);
 });
+
+///make admin api
+app.patch('/users/admin/:id', async (req, res) => {
+  const id = req.params.id;
+  const filter = { _id: new ObjectId(id) };
+  const updatedDoc = {
+    $set: {
+      role: 'admin'
+    }
+  }
+  const result = await userCollection.updateOne(filter, updatedDoc);
+  res.send(result);
+})
+///adding meal api
+app.post("/addmeal", async (req, res) => {
+  const newmeal = req.body;
+  console.log(newmeal);
+  const result = await allMealsCollection.insertOne(newmeal);
+  res.send(result);
+});
+
+
+///adding  upcoming meal api
+app.post("/addtoupcomingmeal", async (req, res) => {
+  const newmeal = req.body;
+  console.log(newmeal);
+  const result = await UpcomingMealsCollection.insertOne(newmeal);
+  res.send(result);
+});
+
+
+
 
 
   app.listen(port, () => {

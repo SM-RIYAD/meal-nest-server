@@ -129,8 +129,66 @@ app.post("/addtoupcomingmeal", async (req, res) => {
   res.send(result);
 });
 
+///get a specific meal
 
+app.get("/specificmeal/:id", async (req, res) => {
+  const id = req.params.id;
 
+  // console.log(" update id: ", id);
+  const query = { _id: new ObjectId(id) };
+  const result = await allMealsCollection.findOne(query);
+  console.log("to see details meal", result);
+  res.send(result);
+});
+///update a meal api
+app.put("/updatemeal/:id", async (req, res) => {
+  const id = req.params.id;
+  const filter = { _id: new ObjectId(id) };
+  const options = { upsert: true };
+  const newmealtoUpdate = req.body;
+  console.log("from body update", newmealtoUpdate);
+  const newmeal = {
+
+    mealTitle:newmealtoUpdate.mealTitle,
+    mealType:newmealtoUpdate.mealType ,
+    mealImage:newmealtoUpdate.mealImage,
+    ingredients:newmealtoUpdate.ingredients,
+    description: newmealtoUpdate.description,
+    price:newmealtoUpdate.price,
+    rating:newmealtoUpdate.rating,
+    time:newmealtoUpdate.time,
+  
+    likes:newmealtoUpdate.likes,
+    reviews:newmealtoUpdate.reviews,
+    adminName:newmealtoUpdate.adminName,
+    adminEmail:newmealtoUpdate. adminEmail
+
+ 
+  };
+  console.log("new meal", newmeal);
+  const meal = {
+    $set: {
+     
+    mealTitle:newmealtoUpdate.mealTitle,
+    mealType:newmealtoUpdate.mealType ,
+    mealImage:newmealtoUpdate.mealImage,
+    ingredients:newmealtoUpdate.ingredients,
+    description: newmealtoUpdate.description,
+    price:newmealtoUpdate.price,
+    rating:newmealtoUpdate.rating,
+    time:newmealtoUpdate.time,
+  
+    likes:newmealtoUpdate.likes,
+    reviews:newmealtoUpdate.reviews,
+    adminName:newmealtoUpdate.adminName,
+    adminEmail:newmealtoUpdate. adminEmail
+    },
+  };
+
+  const result = await allMealsCollection.updateOne(filter, meal, options);
+  console.log("updated obj", result);
+  res.send(result);
+});
 
 
   app.listen(port, () => {

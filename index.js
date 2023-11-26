@@ -189,6 +189,37 @@ app.put("/updatemeal/:id", async (req, res) => {
   console.log("updated obj", result);
   res.send(result);
 });
+
+///update a users badze api
+app.put("/updateuserbadze", async (req, res) => {
+  const userinfo = req.body;
+  const filter = { email:userinfo.email };
+  const options = { upsert: true };
+  // const newmealtoUpdate = req.body;
+  console.log("from body update", userinfo);
+  // const newmeal = {
+
+ 
+ 
+  // };
+  // console.log("new meal", newmeal);
+  const badge_info = {
+    $set: {
+      badge:userinfo.badge
+
+    },
+  };
+
+  const result = await userCollection.updateOne(filter, badge_info, options);
+  console.log("updated obj", result);
+  res.send(result);
+});
+
+
+
+
+
+
 ///delete a meal api
 app.delete("/deletemeal/:id", async (req, res) => {
   const id = req.params.id;

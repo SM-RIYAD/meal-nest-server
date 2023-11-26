@@ -4,7 +4,7 @@ const cookieParser = require("cookie-parser");
 require("dotenv").config();
 const cors = require("cors");
 const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
-
+const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
 const app = express();
 app.use(express.json());
 const port = process.env.PORT || 5000;
@@ -189,8 +189,30 @@ app.put("/updatemeal/:id", async (req, res) => {
   console.log("updated obj", result);
   res.send(result);
 });
+///delete a meal api
+app.delete("/deletemeal/:id", async (req, res) => {
+  const id = req.params.id;
+  const query = { _id: new ObjectId(id) };
+  const result = await allMealsCollection.deleteOne(query);
+  console.log(result);
+  res.send(result);
+});
+  // payment intent
+  app.post('/create-payment-intent', async (req, res) => {
+    const { price } = req.body;
+    const amount = parseInt(price * 100);
+    console.log(amount, 'amount inside the intent')
 
+    const paymentIntent = await stripe.paymentIntents.create({
+      amount: amount,
+      currency: 'usd',
+      payment_method_types: ['card']
+    });
 
+    res.send({
+      clientSecret: paymentIntent.client_secret
+    })
+  });
   app.listen(port, () => {
     console.log(
       `meal nest Server is running on port: ${port}, ${process.env.DB_USER},${process.env.DB_PASS} `

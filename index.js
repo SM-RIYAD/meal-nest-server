@@ -45,15 +45,15 @@ app.get("/", (req, res) => {
   
 ///getting all meals api
   app.get("/meals", async (req, res) => {
-    // console.log(req.query.email);
+    // console.log(req.query.reviwedmeal);
     // console.log("token owner info", req.user);
     // if (req.user.email !== req.query.email) {
     //   return res.status(403).send({ message: "forbidden access" });
     // }
     // console.log("cookies test", req.cookies);
     let query = {};
-    // if (req.query?.email) {
-    //   query = { useremail: req.query.email };
+    // if (req.query.reviwedmeal) {
+    //   query = { mealTitle: req.query.reviwedmeal };
     // }
     const result = await allMealsCollection.find(query).toArray();
     res.send(result);
@@ -145,14 +145,33 @@ app.get("/reviews", async (req, res) => {
   //   return res.status(403).send({ message: "forbidden access" });
   // }
   // console.log("cookies test", req.cookies);
+  console.log( "this is review m wal title",req.query.mealid);
   let query = {};
+  if (req.query?.mealid) {
+    query = { reviewdmeal_id: req.query.mealid };
+  }
   // if (req.query?.email) {
   //   query = { useremail: req.query.email };
   // }
   const result = await ReviewCollection.find(query).toArray();
   res.send(result);
 });
-
+///update review count api
+app.get("/updatereviewcount/:id", async (req, res) => {
+  const id = req.params.id;
+  const filter = { _id: new ObjectId(id) };
+  // const jobdata = req.body;
+  // console.log(jobdata);
+  const updatedmealdata = {
+    $inc: {
+      // status: updatedBooking.status
+      reviews: 1,
+    },
+  };
+  const result = await allMealsCollection.updateOne(filter,updatedmealdata);
+  console.log("result from update", result);
+  res.send(result);
+});
 
 ///get a specific meal
 

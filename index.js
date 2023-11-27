@@ -38,7 +38,7 @@ const client = new MongoClient(uri, {
   const allMealsCollection = client.db("mealNest").collection("allmeals");
   const userCollection = client.db("mealNest").collection("users");
   const UpcomingMealsCollection = client.db("mealNest").collection("upcomingmeals");
-
+  const ReviewCollection = client.db("mealNest").collection("Reviews");
 app.get("/", (req, res) => {
     res.send("meal nest server is running");
   });
@@ -129,11 +129,35 @@ app.post("/addtoupcomingmeal", async (req, res) => {
   res.send(result);
 });
 
+
+///adding   meal review api
+app.post("/addreview", async (req, res) => {
+  const reviewinfo = req.body;
+  console.log(reviewinfo);
+  const result = await ReviewCollection.insertOne(reviewinfo);
+  res.send(result);
+});
+
+app.get("/reviews", async (req, res) => {
+  // console.log(req.query.email);
+  // console.log("token owner info", req.user);
+  // if (req.user.email !== req.query.email) {
+  //   return res.status(403).send({ message: "forbidden access" });
+  // }
+  // console.log("cookies test", req.cookies);
+  let query = {};
+  // if (req.query?.email) {
+  //   query = { useremail: req.query.email };
+  // }
+  const result = await ReviewCollection.find(query).toArray();
+  res.send(result);
+});
+
+
 ///get a specific meal
 
 app.get("/specificmeal/:id", async (req, res) => {
   const id = req.params.id;
-
   // console.log(" update id: ", id);
   const query = { _id: new ObjectId(id) };
   const result = await allMealsCollection.findOne(query);

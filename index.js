@@ -74,6 +74,8 @@ app.post('/users', async (req, res) => {
     res.send(result);
   });
 
+
+
 ///checking admin api
 
 app.get('/users/admin/:email', async (req, res) => {
@@ -173,6 +175,28 @@ app.get("/updatereviewcount/:id", async (req, res) => {
   res.send(result);
 });
 
+///update like count
+
+app.get("/updatelikecount/:id", async (req, res) => {
+  const id = req.params.id;
+  const filter = { _id: new ObjectId(id) };
+  // const jobdata = req.body;
+  // console.log(jobdata);
+  const updatedmealdata = {
+    $inc: {
+      // status: updatedBooking.status
+      likes: 1,
+    },
+  };
+  const result = await allMealsCollection.updateOne(filter,updatedmealdata);
+  console.log("result from update", result);
+  res.send(result);
+});
+
+
+
+
+
 ///get a specific meal
 
 app.get("/specificmeal/:id", async (req, res) => {
@@ -204,7 +228,8 @@ app.put("/updatemeal/:id", async (req, res) => {
     likes:newmealtoUpdate.likes,
     reviews:newmealtoUpdate.reviews,
     adminName:newmealtoUpdate.adminName,
-    adminEmail:newmealtoUpdate. adminEmail
+    adminEmail:newmealtoUpdate. adminEmail,
+    likeEmail:newmealtoUpdate.likeEmail
 
  
   };
@@ -224,7 +249,7 @@ app.put("/updatemeal/:id", async (req, res) => {
     likes:newmealtoUpdate.likes,
     reviews:newmealtoUpdate.reviews,
     adminName:newmealtoUpdate.adminName,
-    adminEmail:newmealtoUpdate. adminEmail
+    adminEmail:newmealtoUpdate. adminEmail,likeEmail:newmealtoUpdate.likeEmail
     },
   };
 
@@ -232,10 +257,15 @@ app.put("/updatemeal/:id", async (req, res) => {
   console.log("updated obj", result);
   res.send(result);
 });
+///update like email
 
+
+
+ 
 ///update a users badze api
 app.put("/updateuserbadze", async (req, res) => {
   const userinfo = req.body;
+  
   const filter = { email:userinfo.email };
   const options = { upsert: true };
   // const newmealtoUpdate = req.body;
@@ -252,12 +282,38 @@ app.put("/updateuserbadze", async (req, res) => {
 
     },
   };
-
   const result = await userCollection.updateOne(filter, badge_info, options);
   console.log("updated obj", result);
   res.send(result);
 });
 
+///update liked users email in  meal api
+
+app.put("/update_like_email/:id", async (req, res) => {
+  const mealinfo = req.body;
+  const id = req.params.id;
+  const filter = { _id: new ObjectId(id) };
+
+  const options = { upsert: true };
+  // const newmealtoUpdate = req.body;
+  console.log("from body update", mealinfo);
+  // const newmeal = {
+
+ 
+ 
+  // };
+  // console.log("new meal", newmeal);
+  const likedemailinfo = {
+    // $set: {
+    //   likeEmail:mealinfo.likeEmail
+
+    // }
+    $push: { likeEmails: mealinfo.likeEmail } ,
+  };
+  const result = await allMealsCollection.updateOne(filter,likedemailinfo, options);
+  console.log("updated obj", result);
+  res.send(result);
+});
 
 
 

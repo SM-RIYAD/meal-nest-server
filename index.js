@@ -170,6 +170,13 @@ app.patch('/users/admin/:id', async (req, res) => {
   const result = await userCollection.updateOne(filter, updatedDoc);
   res.send(result);
 })
+
+
+
+///updating a review api
+
+
+
 ///adding meal api
 app.post("/addmeal", async (req, res) => {
   const newmeal = req.body;
@@ -210,12 +217,40 @@ app.get("/reviews", async (req, res) => {
   if (req.query?.mealid) {
     query = { reviewdmeal_id: req.query.mealid };
   }
-  // if (req.query?.email) {
-  //   query = { useremail: req.query.email };
-  // }
+  if (req.query?.email) {
+    query = { reviewgiversEmail: req.query.email };
+  }
   const result = await ReviewCollection.find(query).toArray();
   res.send(result);
 });
+
+
+// /update review content
+app.put("/update/reviewtext/:id", async (req, res) => {
+  const id = req.params.id;
+  const filter = { _id: new ObjectId(id) };
+  const options = { upsert: true };
+  const newreviewtoUpdate = req.body;
+  console.log("from body update", newreviewtoUpdate);
+
+  // console.log("new meal", newmeal);
+  const review = {
+    $set: {
+     
+      reviewcontent: newreviewtoUpdate.reviewcontent
+    },
+  };
+
+  const result = await ReviewCollection.updateOne(filter, review, options);
+  console.log("updated obj", result);
+  res.send(result);
+});
+
+
+
+
+
+
 
 /// getting requested meals api
 

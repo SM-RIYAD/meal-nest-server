@@ -39,6 +39,8 @@ const client = new MongoClient(uri, {
   const userCollection = client.db("mealNest").collection("users");
   const UpcomingMealsCollection = client.db("mealNest").collection("upcomingmeals");
   const ReviewCollection = client.db("mealNest").collection("Reviews");
+
+  const RequestedMealsCollection = client.db("mealNest").collection("requestedmeals");
 app.get("/", (req, res) => {
     res.send("meal nest server is running");
   });
@@ -75,6 +77,24 @@ app.post('/users', async (req, res) => {
   });
 
 
+  ///adding requested meals api
+ 
+app.post("/addrequestedmeal", async (req, res) => {
+  const newmeal = req.body;
+  console.log(newmeal);
+  const result = await RequestedMealsCollection.insertOne(newmeal);
+  res.send(result);
+});
+
+
+/// cancelling requested meal api
+app.delete("/deleteRequestedMeal/:id", async (req, res) => {
+  const id = req.params.id;
+  const query = { _id: new ObjectId(id) };
+  const result = await RequestedMealsCollection.deleteOne(query);
+  console.log(result);
+  res.send(result);
+});
 
 ///checking admin api
 
@@ -101,6 +121,25 @@ app.get('/users', async (req, res) => {
   const result = await userCollection.find().toArray();
   res.send(result);
 });
+///get specific user
+app.get("/checkHasPackage/:email", async (req, res) => {
+  const email = req.params.email;
+
+  // if (email !== req.decoded.email) {
+  //   return res.status(403).send({ message: 'forbidden access' })
+  // }
+
+  const query = { email: email };
+  const user = await userCollection.findOne(query);
+  let DontHasPackage =false;
+  if (user) {
+    DontHasPackage = user?.badge === 'bronze';
+  }
+  res.send({ DontHasPackage});
+  // res.send(result);
+});
+
+
 
 ///make admin api
 app.patch('/users/admin/:id', async (req, res) => {
@@ -140,6 +179,8 @@ app.post("/addreview", async (req, res) => {
   res.send(result);
 });
 
+
+///getting review page
 app.get("/reviews", async (req, res) => {
   // console.log(req.query.email);
   // console.log("token owner info", req.user);
@@ -158,6 +199,34 @@ app.get("/reviews", async (req, res) => {
   const result = await ReviewCollection.find(query).toArray();
   res.send(result);
 });
+
+/// getting requested meals api
+
+app.get("/requestedmeals", async (req, res) => {
+  // console.log(req.query.email);
+  // console.log("token owner info", req.user);
+  // if (req.user.email !== req.query.email) {
+  //   return res.status(403).send({ message: "forbidden access" });
+  // }
+  // console.log("cookies test", req.cookies);
+  console.log( "this is requested users email",req.query.email);
+  let query = {};
+  if (req.query?.email) {
+    query = { requestedUsersEmail: req.query?.email };
+  }
+  // if (req.query?.email) {
+  //   query = { useremail: req.query.email };
+  // }
+  const result = await RequestedMealsCollection.find(query).toArray();
+  res.send(result);
+});
+
+
+
+
+
+
+
 ///update review count api
 app.get("/updatereviewcount/:id", async (req, res) => {
   const id = req.params.id;

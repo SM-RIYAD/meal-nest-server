@@ -238,12 +238,6 @@ app.get("/requestedmeals", async (req, res) => {
   res.send(result);
 });
 
-
-
-
-
-
-
 ///update review count api
 app.get("/updatereviewcount/:id", async (req, res) => {
   const id = req.params.id;
@@ -296,6 +290,8 @@ app.get("/updatelikecountInUpcomingMeals/:id", async (req, res) => {
   console.log("result from update", result);
   res.send(result);
 });
+
+
 
 
 
@@ -465,6 +461,32 @@ app.put("/update_requested_meal_status/:id", async (req, res) => {
   console.log("updated obj", result);
   res.send(result);
 });
+
+/// search from serve meal page from requested meals api
+app.get('/api/search/in_servepage/:searchWord', async (req, res) => {
+  const searchWord = req.params.searchWord;
+console.log("this is search word from serve page",searchWord);
+
+    const results = await RequestedMealsCollection.find({
+      $or: [
+        { requestedUsersEmail: { $regex: searchWord, $options: 'i' } },
+        { requestedUsersName: { $regex: searchWord, $options: 'i' } },
+      ],
+    }).toArray();
+res.send(results)
+  
+});
+
+///delete a review api
+
+app.delete("/deletereview/:id", async (req, res) => {
+  const id = req.params.id;
+  const query = { _id: new ObjectId(id) };
+  const result = await ReviewCollection.deleteOne(query);
+  console.log(result);
+  res.send(result);
+});
+
 
 ///delete a meal api
 app.delete("/deletemeal/:id", async (req, res) => {

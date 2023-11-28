@@ -61,6 +61,23 @@ app.get("/", (req, res) => {
     res.send(result);
   });
 
+  ///getting all upcoming meals api
+  app.get("/upcomingmeals", async (req, res) => {
+    // console.log(req.query.reviwedmeal);
+    // console.log("token owner info", req.user);
+    // if (req.user.email !== req.query.email) {
+    //   return res.status(403).send({ message: "forbidden access" });
+    // }
+    // console.log("cookies test", req.cookies);
+    let query = {};
+    // if (req.query.reviwedmeal) {
+    //   query = { mealTitle: req.query.reviwedmeal };
+    // }
+    const result = await UpcomingMealsCollection.find(query).toArray();
+    res.send(result);
+  });
+
+
 ///adding user api
 app.post('/users', async (req, res) => {
     const user = req.body;
@@ -262,6 +279,24 @@ app.get("/updatelikecount/:id", async (req, res) => {
   res.send(result);
 });
 
+///update like count in upcoming meals
+
+app.get("/updatelikecountInUpcomingMeals/:id", async (req, res) => {
+  const id = req.params.id;
+  const filter = { _id: new ObjectId(id) };
+  // const jobdata = req.body;
+  // console.log(jobdata);
+  const updatedmealdata = {
+    $inc: {
+      // status: updatedBooking.status
+      likes: 1,
+    },
+  };
+  const result = await UpcomingMealsCollection.updateOne(filter,updatedmealdata);
+  console.log("result from update", result);
+  res.send(result);
+});
+
 
 
 
@@ -340,9 +375,6 @@ app.put("/updateuserbadze", async (req, res) => {
   // const newmealtoUpdate = req.body;
   console.log("from body update", userinfo);
   // const newmeal = {
-
- 
- 
   // };
   // console.log("new meal", newmeal);
   const badge_info = {
@@ -367,15 +399,11 @@ app.put("/update_like_email/:id", async (req, res) => {
   // const newmealtoUpdate = req.body;
   console.log("from body update", mealinfo);
   // const newmeal = {
-
- 
- 
   // };
   // console.log("new meal", newmeal);
   const likedemailinfo = {
     // $set: {
     //   likeEmail:mealinfo.likeEmail
-
     // }
     $push: { likeEmails: mealinfo.likeEmail } ,
   };
@@ -384,9 +412,59 @@ app.put("/update_like_email/:id", async (req, res) => {
   res.send(result);
 });
 
+///update liked users email in upcomingmeals
+app.put("/update_like_email_in_Upcoming_meals/:id", async (req, res) => {
+  const mealinfo = req.body;
+  const id = req.params.id;
+  const filter = { _id: new ObjectId(id) };
 
+  const options = { upsert: true };
+  // const newmealtoUpdate = req.body;
+  console.log("from body update", mealinfo);
+  // const newmeal = {
+  // };
+  // console.log("new meal", newmeal);
+  const likedemailinfo = {
+    // $set: {
+    //   likeEmail:mealinfo.likeEmail
+    // }
+    $push: { likeEmails: mealinfo.likeEmail } ,
+  };
+  const result = await UpcomingMealsCollection.updateOne(filter,likedemailinfo, options);
+  console.log("updated obj", result);
+  res.send(result);
+});
 
+/// update requested meal status api
 
+app.put("/update_requested_meal_status/:id", async (req, res) => {
+  const mealinfo = req.body;
+  const id = req.params.id;
+  const filter = { _id: new ObjectId(id) };
+
+  const options = { upsert: true };
+  // const newmealtoUpdate = req.body;
+  console.log("from body update", mealinfo);
+  // const newmeal = {
+  // };
+  // console.log("new meal", newmeal);
+  // const likedemailinfo = {
+  //   // $set: {
+  //   //   likeEmail:mealinfo.likeEmail
+
+  //       // }
+  //   $push: { likeEmails: mealinfo.likeEmail } ,
+  // };
+
+  const requested_meal_info = {
+    $set: {
+      mealStatus:"delivered"
+
+    }}
+  const result = await RequestedMealsCollection.updateOne(filter,requested_meal_info, options);
+  console.log("updated obj", result);
+  res.send(result);
+});
 
 ///delete a meal api
 app.delete("/deletemeal/:id", async (req, res) => {

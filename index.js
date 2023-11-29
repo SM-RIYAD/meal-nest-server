@@ -138,7 +138,7 @@ app.get('/users', async (req, res) => {
   const result = await userCollection.find().toArray();
   res.send(result);
 });
-///get specific user
+///check specific user has a package or not api
 app.get("/checkHasPackage/:email", async (req, res) => {
   const email = req.params.email;
 
@@ -155,6 +155,27 @@ app.get("/checkHasPackage/:email", async (req, res) => {
   res.send({ DontHasPackage});
   // res.send(result);
 });
+
+
+
+///get a specific user api
+app.get("/specificUser/:email", async (req, res) => {
+  const email = req.params.email;
+console.log("this email is for user details",email)
+  // if (email !== req.decoded.email) {
+  //   return res.status(403).send({ message: 'forbidden access' })
+  // }
+
+  const query = { email: email };
+  const user = await userCollection.findOne(query);
+  // let DontHasPackage =false;
+  // if (user) {
+  //   DontHasPackage = user?.badge === 'bronze';
+  // }
+  res.send({ user });
+  // res.send(result);
+});
+
 
 
 

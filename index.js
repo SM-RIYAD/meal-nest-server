@@ -44,9 +44,133 @@ const client = new MongoClient(uri, {
 app.get("/", (req, res) => {
     res.send("meal nest server is running");
   });
+
+
+
+
+
+  ///get count for all meals
+  app.get('/AllmealsCount', async (req, res) => {
+    const count = await allMealsCollection.estimatedDocumentCount();
+    res.send({ count });
+  })
+
+///get count for all reviews
+
+app.get('/AllreviewsCount', async (req, res) => {
+  try {
+    let query = {};
+    if (req.query?.mealid) {
+      query = { reviewdmeal_id: req.query.mealid };
+    }
+    if (req.query?.email) {
+      query = { reviewgiversEmail: req.query.email };
+    }
+
+    const count = await ReviewCollection.countDocuments(query);
+    res.send({ count });
+  } catch (error) {
+    console.error("Error counting reviews:", error);
+    res.status(500).send({ error: "Internal Server Error" });
+  }
+});
+
+///getting review page
+app.get("/reviews", async (req, res) => {
+  // console.log(req.query.email);
+  // console.log("token owner info", req.user);
+  // if (req.user.email !== req.query.email) {
+  //   return res.status(403).send({ message: "forbidden access" });
+  // }
+  // console.log("cookies test", req.cookies);
+  console.log( "this is review  title",req.query.mealid);
+  let query = {};
+  if (req.query?.mealid) {
+    query = { reviewdmeal_id: req.query.mealid };
+  }
+  if (req.query?.email) {
+    query = { reviewgiversEmail: req.query.email };
+  }
+
+  const page = parseInt(req.query.page);
+  const size = parseInt(req.query.size);
+
+
+  const result = await ReviewCollection.find(query).skip(page * size)
+  .limit(size).toArray();
+  res.send(result);
+});
+
+/// get count for requested meals api 
+app.get('/requestedMealsCount', async (req, res) => {
+  try {
+    let query = {};
+    if (req.query?.email) {
+      query = { requestedUsersEmail: req.query?.email };
+    }
+    const count = await RequestedMealsCollection.countDocuments(query);
+    res.send({ count });
+  } catch (error) {
+    console.error("Error counting requested meals:", error);
+    res.status(500).send({ error: "Internal Server Error" });
+  }
+});
+
+
+/// getting requested meals api
+
+app.get("/requestedmeals", async (req, res) => {
+  // console.log(req.query.email);
+  // console.log("token owner info", req.user);
+  // if (req.user.email !== req.query.email) {
+  //   return res.status(403).send({ message: "forbidden access" });
+  // }
+  // console.log("cookies test", req.cookies);
+  const page = parseInt(req.query.page);
+  const size = parseInt(req.query.size);
+  console.log( "this is requested users email",req.query.email);
+  let query = {};
+  if (req.query?.email) {
+    query = { requestedUsersEmail: req.query?.email };
+  }
+  // if (req.query?.email) {
+  //   query = { useremail: req.query.email };
+  // }
+  const result = await RequestedMealsCollection.find(query).skip(page * size)
+  .limit(size).toArray();
+  res.send(result);
+});
+
+
+  ///get count for all users
+  app.get('/AllUsersCount', async (req, res) => {
+    const count = await userCollection.estimatedDocumentCount();
+    res.send({ count });
+  })
+///get count upcomingmeals
+app.get('/AllUpcomingmealsCount', async (req, res) => {
+  const count = await userCollection.estimatedDocumentCount();
+  res.send({ count });
+})
+
+///get all the users 
+
+
+app.get('/users', async (req, res) => {
+  const page = parseInt(req.query.page);
+    const size = parseInt(req.query.size);
+  const result = await userCollection.find().skip(page * size)
+  .limit(size).toArray();
+  res.send(result);
+});
+
+
+
   
 ///getting all meals api
   app.get("/meals", async (req, res) => {
+    const page = parseInt(req.query.page);
+    const size = parseInt(req.query.size);
     // console.log(req.query.reviwedmeal);
     // console.log("token owner info", req.user);
     // if (req.user.email !== req.query.email) {
@@ -57,12 +181,18 @@ app.get("/", (req, res) => {
     // if (req.query.reviwedmeal) {
     //   query = { mealTitle: req.query.reviwedmeal };
     // }
-    const result = await allMealsCollection.find(query).toArray();
+    const result = await allMealsCollection.find(query).skip(page * size)
+    .limit(size).toArray();
     res.send(result);
   });
 
   ///getting all upcoming meals api
   app.get("/upcomingmeals", async (req, res) => {
+
+
+    const page = parseInt(req.query.page);
+    const size = parseInt(req.query.size);
+
     // console.log(req.query.reviwedmeal);
     // console.log("token owner info", req.user);
     // if (req.user.email !== req.query.email) {
@@ -73,7 +203,8 @@ app.get("/", (req, res) => {
     // if (req.query.reviwedmeal) {
     //   query = { mealTitle: req.query.reviwedmeal };
     // }
-    const result = await UpcomingMealsCollection.find(query).toArray();
+    const result = await UpcomingMealsCollection.find(query).skip(page * size)
+    .limit(size).toArray();
     res.send(result);
   });
 
@@ -131,13 +262,7 @@ app.get('/users/admin/:email', async (req, res) => {
     res.send({ admin });
   })
 
-///get all the users 
 
-
-app.get('/users', async (req, res) => {
-  const result = await userCollection.find().toArray();
-  res.send(result);
-});
 ///check specific user has a package or not api
 app.get("/checkHasPackage/:email", async (req, res) => {
   const email = req.params.email;
@@ -225,25 +350,6 @@ app.post("/addreview", async (req, res) => {
 });
 
 
-///getting review page
-app.get("/reviews", async (req, res) => {
-  // console.log(req.query.email);
-  // console.log("token owner info", req.user);
-  // if (req.user.email !== req.query.email) {
-  //   return res.status(403).send({ message: "forbidden access" });
-  // }
-  // console.log("cookies test", req.cookies);
-  console.log( "this is review m wal title",req.query.mealid);
-  let query = {};
-  if (req.query?.mealid) {
-    query = { reviewdmeal_id: req.query.mealid };
-  }
-  if (req.query?.email) {
-    query = { reviewgiversEmail: req.query.email };
-  }
-  const result = await ReviewCollection.find(query).toArray();
-  res.send(result);
-});
 
 
 // /update review content

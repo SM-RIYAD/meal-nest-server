@@ -8,13 +8,38 @@ const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
 const app = express();
 app.use(express.json());
 const port = process.env.PORT || 5000;
-
+app.use(cookieParser());
+///middlewires
 app.use(
     cors({
-      origin: ["http://localhost:5173","https://job-sphere.web.app","https://job-sphere.firebaseapp.com"],
+      origin: ["http://localhost:5173","https://meal-nest.web.app","https://meal-nest.firebaseapp.com/"],
       credentials: true,
     })
   );
+
+
+
+  const logger = (req, res, next) => {
+    console.log("log: info", req.method, req.url);
+    next();
+  };
+///verify token
+const verifyToken = (req, res, next) => {
+  const token = req?.cookies?.token;
+  console.log('token in the middleware', token);
+  // no token available
+  if (!token) {
+    console.log("we didnt get any token!")
+    return res.status(401).send({ message: "unauthorized access" });
+  }
+  jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, (err, decoded) => {
+    if (err) {
+      return res.status(401).send({ message: "unauthorized access" });
+    }
+    req.user = decoded;
+    next();
+  });
+};
 const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.wacbf1n.mongodb.net/?retryWrites=true&w=majority`;
 const client = new MongoClient(uri, {
     serverApi: {
@@ -47,6 +72,52 @@ app.get("/", (req, res) => {
 
 
 
+///auth related api
+app.post("/jwt",logger, async (req, res) => {
+  const user = req.body;
+  console.log("user for token after login", user);
+  const token = jwt.sign(user, process.env.ACCESS_TOKEN_SECRET, {
+    expiresIn: "1h",
+  });
+
+  console.log("this is the token made in login",token)
+ res.cookie(
+    "token",
+    token,
+    {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production" ? true: false,
+    sameSite: process.env.NODE_ENV === "production" ? "none" : "strict",
+    }
+    )
+  
+    .send({ success: true });
+});
+
+
+
+////LOG OUT
+app.post("/logout", async (req, res) => {
+  const user = req.body;
+  console.log("logging out", user);
+
+  // clearCookie('token', { maxAge: 0 }).
+  res.clearCookie(
+    "token",
+    {
+    maxAge: 0,
+    secure: process.env.NODE_ENV === "production" ? true: false,
+    sameSite: process.env.NODE_ENV === "production" ? "none" : "strict",
+    }
+    ).send({ success: true })
+
+  // res.clearCookie("token", {
+  //   maxAge: 0,
+  //   secure: process.env.NODE_ENV === "production" ? true : false,
+  //   sameSite: process.env.NODE_ENV === "production" ? "none" : "strict",
+  // });
+});
+
 
 
   ///get count for all meals
@@ -76,7 +147,7 @@ app.get('/AllreviewsCount', async (req, res) => {
 });
 
 ///getting review page
-app.get("/reviews", async (req, res) => {
+app.get("/reviews",verifyToken, async (req, res) => {
   // console.log(req.query.email);
   // console.log("token owner info", req.user);
   // if (req.user.email !== req.query.email) {
@@ -164,7 +235,29 @@ app.get('/users', async (req, res) => {
   res.send(result);
 });
 
+///updating about me api
+app.patch('/update/aboutme/:id', async (req, res) => {
 
+
+  const id = req.params.id;
+  const filter = { _id: new ObjectId(id) };
+  const options = { upsert: true };
+  const newaboutmeToUpdate = req.body;
+  console.log("from body update", newaboutmeToUpdate);
+
+  // console.log("new meal", newmeal);
+  const review = {
+    $set: {
+     
+      aboutme: newaboutmeToUpdate.aboutme
+    },
+  };
+
+  const result = await userCollection.updateOne(filter, review, options);
+  console.log("updated obj", result);
+  res.send(result);
+
+});
 
   
 ///getting all meals api

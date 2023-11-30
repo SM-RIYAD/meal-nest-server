@@ -147,7 +147,7 @@ app.get('/AllreviewsCount', async (req, res) => {
 });
 
 ///getting review page
-app.get("/reviews",verifyToken, async (req, res) => {
+app.get("/reviews", async (req, res) => {
   // console.log(req.query.email);
   // console.log("token owner info", req.user);
   // if (req.user.email !== req.query.email) {
